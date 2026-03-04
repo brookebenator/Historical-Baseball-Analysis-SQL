@@ -38,7 +38,7 @@ with spend as (select teamid, yearid, sum(salary) as total_spend_per_yr			      
 from salaries
 group by teamid, yearid),
  
-pct_spend as (select teamid, round(avg(total_spend_per_yr),2) as avg_spend,		                                                    --Determines average annual spend
+pct_spend as (select teamid, round(avg(total_spend_per_yr),2) as avg_spend,		                                                   	  --Determines average annual spend
           ntile(5) over(order by avg(total_spend_per_yr) desc) as percent		                                                      --Ranks teams 1-5 based off average annual spend
 from spend
 group by teamid)
@@ -49,23 +49,23 @@ where percent = 1;		--Selects top 20% of teams
 
 --5. For each team, calculate the cumulative sum of spending over the years.
 
-with salary_sum as (select yearid, teamid, sum(salary) as total_spend_per_year                                                     --Calculates total spend per team per year
+with salary_sum as (select yearid, teamid, sum(salary) as total_spend_per_year                                                     		--Calculates total spend per team per year
 from salaries
 group by yearid, teamid)
  
 select teamid, yearid, total_spend_per_year, 
-                       sum(total_spend_per_year) over(partition by teamid order by teamid, yearid) as cumulative_sum               --Calculates cumulative spend per team per year
+                       sum(total_spend_per_year) over(partition by teamid order by teamid, yearid) as cumulative_sum              	 	--Calculates cumulative spend per team per year
 from salary_sum;	
 
 --6. Return the first year that each teams cumulative spending surpassed $1 billion.
 
-with salary_sum as (select yearid, teamid, sum(salary) as total_spend_per_year                                                      --Calculates total spending per team per year
+with salary_sum as (select yearid, teamid, sum(salary) as total_spend_per_year                                                      	 --Calculates total spending per team per year
 from salaries
 group by yearid, teamid),
  
 cum_spending as (select yearid, teamid, total_spend_per_year, 
                       sum(total_spend_per_year) over(partition by teamid order by teamid, yearid) as cumulative_sum
-from salary_sum), 																                                                                                   --Calculates cumulative spending over the years
+from salary_sum), 																                                                                           --Calculates cumulative spending over the years
  
 rank_spending as (select yearid, teamid, cumulative_sum, row_number() over(partition by teamid order by cumulative_sum) as rank
 from cum_spending
@@ -93,7 +93,7 @@ from salaries s
 join players p on p.playerid = s.playerid
 order by p.nameGiven, s.yearid)
  
-select nameGiven,																						                                                                           --Returns each starting & ending team per player
+select nameGiven,																						                                                       --Returns each starting & ending team per player
 max(case when starting_rank = 1 then teamid end) as starting_team,
 max(case when ending_rank = 1 then teamid end) as ending_team
 from ranking
@@ -119,18 +119,18 @@ order by playerid)
 select sr.playerid, sr.starting_team, sr.ending_team, p.finalGame - p.debut as career_length			
 from select_rank sr																					
 join players p on p.playerID = sr.playerid
-where starting_team = ending_team 																                                                                      --Filters where a players starting team is the same as their end team
-and career_length > 10																		                                                                              --Filters by players who have had a career greater than 10 years
+where starting_team = ending_team 																                                                       --Filters where a players starting team is the same as their end team
+and career_length > 10																		                                                           --Filters by players who have had a career greater than 10 years
 ORDER BY career_length desc;
 
 --10. Select the players that share the same birthday.
 
-with bday as (select date(concat(birthyear, '-', birthmonth, '-', birthday)) as birthdate, namegiven --creates birthday in date format
+with bday as (select date(concat(birthyear, '-', birthmonth, '-', birthday)) as birthdate, namegiven 													--Creates birthday in date format
               from players)
               
-select birthdate, group_concat(namegiven, ', ') as players_list										                                                      --Groups the players together with a delimiter
+select birthdate, group_concat(namegiven, ', ') as players_list										                                                    --Groups the players together with a delimiter
 from bday
-where birthdate is not NULL																			                                                                        --Filters out players missing a full birthday
+where birthdate is not NULL																			                                                    --Filters out players missing a full birthday
 group by birthdate
 order by birthdate;
 							
